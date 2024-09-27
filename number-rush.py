@@ -5,9 +5,65 @@ import time
 # Customization options
 st.set_page_config(page_title="Math Practice Game", layout="centered")
 
+# Apply custom CSS styles
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #f7f9fb;
+        padding: 20px;
+    }
+    .main-title {
+        text-align: center;
+        color: #2C3E50;
+    }
+    .number-box {
+        display: inline-block;
+        margin: 10px;
+        padding: 20px;
+        background-color: #ECF0F1;
+        border-radius: 10px;
+        font-size: 24px;
+        font-weight: bold;
+        color: #2980B9;
+        width: 100px;
+        text-align: center;
+    }
+    .stSidebar {
+        background-color: #D9E3F0;
+    }
+    .correct-answer {
+        color: green;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .wrong-answer {
+        color: red;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .play-again-button {
+        background-color: #3498DB;
+        color: white;
+        border-radius: 10px;
+        font-size: 18px;
+        padding: 10px 20px;
+    }
+    .submit-button {
+        background-color: #2ECC71;
+        color: white;
+        font-size: 16px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+    .stMarkdown {
+        font-size: 18px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Game settings
-st.title("🧮 Math Addition Game")
-st.write("Practice your math addition skills!")
+st.markdown("<h1 class='main-title'>🧮 Math Addition Game</h1>", unsafe_allow_html=True)
+st.write("Practice your math addition skills by solving problems within the time limit!")
 
 st.sidebar.header("Customize your game:")
 num_count = st.sidebar.slider("How many numbers to add?", 2, 10, 5)
@@ -22,8 +78,10 @@ correct_answer = sum(numbers)
 
 # Display numbers to add
 st.subheader("Add the following numbers:")
-for i, num in enumerate(numbers, 1):
-    st.write(f"{i}. {num}")
+
+cols = st.columns(num_count)
+for i, num in enumerate(numbers):
+    cols[i].markdown(f"<div class='number-box'>{num}</div>", unsafe_allow_html=True)
 
 # Start the timer
 if 'start_time' not in st.session_state:
@@ -32,37 +90,26 @@ if 'start_time' not in st.session_state:
 remaining_time = time_limit - (time.time() - st.session_state['start_time'])
 
 if remaining_time > 0:
-    st.subheader(f"Time remaining: {int(remaining_time)} seconds")
+    st.subheader(f"⏳ Time remaining: {int(remaining_time)} seconds")
+    st.progress(remaining_time / time_limit)
 else:
-    st.subheader("Time's up!")
+    st.subheader("⏰ Time's up!")
     st.session_state['start_time'] = time.time()  # Reset timer for next round
 
 # Get user's answer
-user_answer = st.text_input("Enter your answer:")
+user_answer = st.text_input("Enter your answer:", "")
 
 # Check answer
-if st.button("Submit"):
+if st.button("Submit", key="submit_button"):
     if remaining_time > 0:
         if user_answer.isdigit() and int(user_answer) == correct_answer:
-            st.success(f"✅ Correct! The sum is {correct_answer}")
+            st.markdown(f"<p class='correct-answer'>✅ Correct! The sum is {correct_answer}</p>", unsafe_allow_html=True)
         else:
-            st.error(f"❌ Wrong! The correct answer was {correct_answer}")
+            st.markdown(f"<p class='wrong-answer'>❌ Wrong! The correct answer was {correct_answer}</p>", unsafe_allow_html=True)
     else:
         st.error("⏱️ Time is up! Try again.")
     st.session_state['start_time'] = time.time()  # Reset timer after submission
 
 # Option to play again
-if st.button("Play Again"):
+if st.button("Play Again", key="play_again_button"):
     st.experimental_rerun()
-
-# Custom styling for the app
-st.markdown("""
-    <style>
-    .stApp {
-        background-color: #f7f9fb;
-    }
-    .stSidebar {
-        background-color: #d9e3f0;
-    }
-    </style>
-    """, unsafe_allow_html=True)
