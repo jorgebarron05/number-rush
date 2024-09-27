@@ -90,21 +90,17 @@ st.markdown("<h1 class='main-title'>🧮 Math Addition Game</h1>", unsafe_allow_
 st.write("Practice your math addition skills by solving problems within the time limit!")
 
 # Countdown Before the Game
-if not st.session_state['game_started'] and st.session_state['countdown'] > 0:
-    st.subheader(f"Game starts in {st.session_state['countdown']} seconds...")
-    
-    # Reduce the countdown
-    time.sleep(1)
-    st.session_state['countdown'] -= 1
-    st.experimental_rerun()
-
-# Game starts
-if st.session_state['countdown'] == 0:
-    st.session_state['game_started'] = True
-    if 'start_time' not in st.session_state or not st.session_state['start_time']:
+if not st.session_state['game_started']:
+    if st.session_state['countdown'] > 0:
+        st.subheader(f"Game starts in {st.session_state['countdown']} seconds...")
+        time.sleep(1)
+        st.session_state['countdown'] -= 1
+        # No need for st.experimental_rerun(), Streamlit reruns automatically
+    else:
+        st.session_state['game_started'] = True
         st.session_state['start_time'] = time.time()
 
-# Once the countdown ends, start the game
+# Game starts
 if st.session_state['game_started']:
     # Display the numbers
     st.subheader("Add the following numbers:")
@@ -143,4 +139,4 @@ if st.button("Play Again", key="play_again_button"):
     st.session_state['game_started'] = False
     st.session_state['countdown'] = 3  # Reset countdown
     st.session_state['user_submitted'] = False
-    st.experimental_rerun()
+    # No need for st.experimental_rerun(), Streamlit reruns automatically
