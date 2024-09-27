@@ -10,8 +10,6 @@ if 'game_started' not in st.session_state:
     st.session_state['game_started'] = False
 if 'start_time' not in st.session_state:
     st.session_state['start_time'] = None
-if 'countdown' not in st.session_state:
-    st.session_state['countdown'] = 3
 if 'user_submitted' not in st.session_state:
     st.session_state['user_submitted'] = False
 if 'score' not in st.session_state:
@@ -39,9 +37,8 @@ def generate_numbers():
 
 # Reset game state for a new round
 def reset_game():
-    st.session_state['game_started'] = False
-    st.session_state['countdown'] = 3
-    st.session_state['start_time'] = None
+    st.session_state['game_started'] = True
+    st.session_state['start_time'] = time.time()
     generate_numbers()
 
 # Main Game UI
@@ -51,23 +48,10 @@ st.write("Try to add up the numbers before time runs out!")
 # Score display
 st.write(f"**Score:** {st.session_state['score']} | **Rounds Played:** {st.session_state['rounds']}")
 
-# Countdown before the game starts
+# Start Game button
 if not st.session_state['game_started']:
-    if st.session_state['countdown'] > 0:
-        st.subheader(f"Game starts in {st.session_state['countdown']} seconds...")
-        
-        # Only update the countdown if enough time has passed
-        if 'last_countdown_update' not in st.session_state:
-            st.session_state['last_countdown_update'] = time.time()
-        
-        if time.time() - st.session_state['last_countdown_update'] >= 1:
-            st.session_state['countdown'] -= 1
-            st.session_state['last_countdown_update'] = time.time()
-
-    else:
-        st.session_state['game_started'] = True
-        st.session_state['start_time'] = time.time()
-        generate_numbers()
+    if st.button("Start Game"):
+        reset_game()
 
 # During the game
 if st.session_state['game_started']:
