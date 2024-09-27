@@ -51,16 +51,19 @@ st.write("Try to add up the numbers before time runs out!")
 # Score display
 st.write(f"**Score:** {st.session_state['score']} | **Rounds Played:** {st.session_state['rounds']}")
 
-# Start Countdown
+# Countdown before the game starts
 if not st.session_state['game_started']:
     if st.session_state['countdown'] > 0:
         st.subheader(f"Game starts in {st.session_state['countdown']} seconds...")
-        time_now = time.time()
-        if st.session_state['start_time'] is None:
-            st.session_state['start_time'] = time_now
-        elif time_now - st.session_state['start_time'] >= 1:
+        
+        # Only update the countdown if enough time has passed
+        if 'last_countdown_update' not in st.session_state:
+            st.session_state['last_countdown_update'] = time.time()
+        
+        if time.time() - st.session_state['last_countdown_update'] >= 1:
             st.session_state['countdown'] -= 1
-            st.session_state['start_time'] = time_now
+            st.session_state['last_countdown_update'] = time.time()
+
     else:
         st.session_state['game_started'] = True
         st.session_state['start_time'] = time.time()
