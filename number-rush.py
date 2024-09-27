@@ -68,6 +68,8 @@ if 'start_time' not in st.session_state:
     st.session_state['start_time'] = None
 if 'countdown' not in st.session_state:
     st.session_state['countdown'] = 3
+if 'user_submitted' not in st.session_state:
+    st.session_state['user_submitted'] = False
 
 # Game setup variables
 st.sidebar.header("Customize your game:")
@@ -78,24 +80,28 @@ time_limit = st.sidebar.slider("Time limit (seconds)", 5, 60, 20)
 st.sidebar.write("Adjust difficulty by changing the number of numbers, digit length, and time limit.")
 
 # Generate random numbers
-numbers = [random.randint(10**(num_digits-1), 10**num_digits - 1) for _ in range(num_count)]
-correct_answer = sum(numbers)
+if not st.session_state['game_started']:
+    numbers = [random.randint(10**(num_digits-1), 10**num_digits - 1) for _ in range(num_count)]
+    st.session_state['numbers'] = numbers
+    st.session_state['correct_answer'] = sum(numbers)
 
 # Show title
 st.markdown("<h1 class='main-title'>🧮 Math Addition Game</h1>", unsafe_allow_html=True)
 st.write("Practice your math addition skills by solving problems within the time limit!")
 
-# Countdown before the game starts
-if not st.session_state['game_started']:
+# Countdown Before the Game
+if not st.session_state['game_started'] and st.session_state['countdown'] > 0:
     st.subheader(f"Game starts in {st.session_state['countdown']} seconds...")
     
     # Reduce the countdown
-    if st.session_state['countdown'] > 0:
-        time.sleep(1)
-        st.session_state['countdown'] -= 1
-        st.experimental_rerun()
-    else:
-        st.session_state['game_started'] = True
+    time.sleep(1)
+    st.session_state['countdown'] -= 1
+    st.experimental_rerun()
+
+# Game starts
+if st.session_state['countdown'] == 0:
+    st.session_state['game_started'] = True
+    if 'start_time' not in st.session_state or not st.session_state['start_time']:
         st.session_state['start_time'] = time.time()
 
 # Once the countdown ends, start the game
@@ -103,7 +109,7 @@ if st.session_state['game_started']:
     # Display the numbers
     st.subheader("Add the following numbers:")
     cols = st.columns(num_count)
-    for i, num in enumerate(numbers):
+    for i, num in enumerate(st.session_state['numbers']):
         cols[i].markdown(f"<div class='number-box'>{num}</div>", unsafe_allow_html=True)
 
     # Timer and progress bar
@@ -118,15 +124,16 @@ if st.session_state['game_started']:
         st.session_state['countdown'] = 3  # Reset countdown for next round
 
     # Get user's answer
-    user_answer = st.text_input("Enter your answer:", "")
+    user_answer = st.text_input("Enter your answer:", key="user_input")
 
     # Check answer
-    if st.button("Submit", key="submit_button"):
+    if st.button("Submit", key="submit_button") and not st.session_state['user_submitted']:
+        st.session_state['user_submitted'] = True
         if remaining_time > 0:
-            if user_answer.isdigit() and int(user_answer) == correct_answer:
-                st.markdown(f"<p class='correct-answer'>✅ Correct! The sum is {correct_answer}</p>", unsafe_allow_html=True)
+            if user_answer.isdigit() and int(user_answer) == st.session_state['correct_answer']:
+                st.markdown(f"<p class='correct-answer'>✅ Correct! The sum is {st.session_state['correct_answer']}</p>", unsafe_allow_html=True)
             else:
-                st.markdown(f"<p class='wrong-answer'>❌ Wrong! The correct answer was {correct_answer}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p class='wrong-answer'>❌ Wrong! The correct answer was {st.session_state['correct_answer']}</p>", unsafe_allow_html=True)
         else:
             st.error("⏱️ Time is up! Try again.")
         st.session_state['start_time'] = time.time()  # Reset timer after submission
@@ -135,4 +142,5 @@ if st.session_state['game_started']:
 if st.button("Play Again", key="play_again_button"):
     st.session_state['game_started'] = False
     st.session_state['countdown'] = 3  # Reset countdown
+    st.session_state['user_submitted'] = False
     st.experimental_rerun()
