@@ -3,93 +3,73 @@ import random
 import time
 
 # Set page configuration
-st.set_page_config(page_title="Math Practice Game", layout="centered")
+st.set_page_config(page_title="Quick Math Game", layout="centered")
 
 # Initialize session state
 if 'game_started' not in st.session_state:
     st.session_state['game_started'] = False
 if 'start_time' not in st.session_state:
     st.session_state['start_time'] = None
-if 'user_submitted' not in st.session_state:
-    st.session_state['user_submitted'] = False
 if 'score' not in st.session_state:
     st.session_state['score'] = 0
 if 'rounds' not in st.session_state:
     st.session_state['rounds'] = 0
-if 'answer_checked' not in st.session_state:
-    st.session_state['answer_checked'] = False
-if 'user_answer' not in st.session_state:
-    st.session_state['user_answer'] = ''
 
-# Sidebar: Game customization
-st.sidebar.header("Customize your game:")
-num_count = st.sidebar.slider("How many numbers to add?", 2, 10, 5)
-num_digits = st.sidebar.slider("Max number of digits per number?", 1, 6, 2)
-time_limit = st.sidebar.slider("Time limit (seconds)", 5, 60, 20)
+# Sidebar for game settings
+st.sidebar.header("Game Settings")
+time_limit = st.sidebar.slider("Time limit (seconds)", 5, 30, 10)
 
-# Generate new numbers at the start of a round
-def generate_numbers():
-    numbers = [random.randint(10**(num_digits-1), 10**num_digits - 1) for _ in range(num_count)]
-    st.session_state['numbers'] = numbers
-    st.session_state['correct_answer'] = sum(numbers)
-    st.session_state['user_answer'] = ''
-    st.session_state['answer_checked'] = False
-
-# Reset game state for a new round
-def reset_game():
+# Function to start a new round
+def start_round():
+    st.session_state['numbers'] = [random.randint(10, 99) for _ in range(2)]
+    st.session_state['correct_answer'] = sum(st.session_state['numbers'])
     st.session_state['game_started'] = True
     st.session_state['start_time'] = time.time()
-    generate_numbers()
+    st.session_state['user_answer'] = ''
+    st.session_state['feedback'] = ''
 
 # Main Game UI
-st.title("🧮 Math Addition Game")
-st.write("Try to add up the numbers before time runs out!")
+st.title("🧠 Quick Math Game")
+st.write(f"Score: {st.session_state['score']} | Rounds Played: {st.session_state['rounds']}")
 
-# Score display
-st.write(f"**Score:** {st.session_state['score']} | **Rounds Played:** {st.session_state['rounds']}")
-
-# Start Game button
+# Start the game
 if not st.session_state['game_started']:
     if st.button("Start Game"):
-        reset_game()
+        start_round()
 
-# During the game
+# Display the game while it's running
 if st.session_state['game_started']:
-    # Display numbers to add
-    st.subheader("Add the following numbers:")
-    cols = st.columns(num_count)
-    for i, num in enumerate(st.session_state['numbers']):
-        cols[i].write(f"**{num}**")
+    time_left = time_limit - (time.time() - st.session_state['start_time'])
     
-    # Timer
-    remaining_time = time_limit - (time.time() - st.session_state['start_time'])
-    
-    if remaining_time > 0:
-        st.subheader(f"⏳ Time remaining: {int(remaining_time)} seconds")
-        st.progress(remaining_time / time_limit)
+    if time_left > 0:
+        st.subheader(f"Time left: {int(time_left)} seconds")
+        st.write(f"**Add these numbers:** {st.session_state['numbers'][0]} + {st.session_state['numbers'][1]}")
         
-        # Get user's answer
-        st.session_state['user_answer'] = st.text_input("Enter your answer:", value=st.session_state['user_answer'], key="user_input")
+        st.session_state['user_answer'] = st.text_input("Your answer:", value=st.session_state['user_answer'], key="answer_input")
         
-        # Submit button
-        if st.button("Submit") and not st.session_state['answer_checked']:
+        if st.button("Submit Answer"):
             if st.session_state['user_answer'].isdigit():
-                if int(st.session_state['user_answer']) == st.session_state['correct_answer']:
-                    st.success(f"✅ Correct! The sum is {st.session_state['correct_answer']}.")
+                user_answer = int(st.session_state['user_answer'])
+                if user_answer == st.session_state['correct_answer']:
+                    st.session_state['feedback'] = "✅ Correct!"
                     st.session_state['score'] += 1
                 else:
-                    st.error(f"❌ Wrong! The correct answer was {st.session_state['correct_answer']}.")
+                    st.session_state['feedback'] = f"❌ Wrong! Correct answer: {st.session_state['correct_answer']}"
             else:
-                st.error("❌ Invalid input! Please enter a number.")
+                st.session_state['feedback'] = "Please enter a valid number."
             
-            st.session_state['answer_checked'] = True
+            st.session_state['game_started'] = False
             st.session_state['rounds'] += 1
     else:
         st.error("⏰ Time's up!")
+        st.write(f"The correct answer was {st.session_state['correct_answer']}")
+        st.session_state['game_started'] = False
         st.session_state['rounds'] += 1
-        st.session_state['answer_checked'] = True
 
-# Play Again button
-if st.session_state['answer_checked']:
+# Feedback and Play Again
+if 'feedback' in st.session_state and st.session_state['feedback']:
+    st.write(st.session_state['feedback'])
+
+if not st.session_state['game_started']:
     if st.button("Play Again"):
-        reset_game()
+        start_round()
