@@ -19,7 +19,7 @@ function startGame() {
     document.getElementById("answer").value = '';
     document.getElementById("answer").focus();  // Auto-focus the input field for better UX
     generateNumbers();
-    timeLeft = 10;  // Time limit per round
+    timeLeft = 15;  // Time limit per round
     document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
     timerInterval = setInterval(updateTimer, 1000);
     roundFinished = false;  // Reset round status
@@ -58,5 +58,7 @@ function checkAnswer() {
 // Start the game when the page loads
 startGame();
 
-// run like this: 
-// http://localhost:8000/
+// run like this:
+
+// 1) python3 -m http.server 8000
+// 2) then go to http://localhost:8000/
